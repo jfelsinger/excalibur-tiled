@@ -65,7 +65,7 @@ export class TiledTileset {
     */
    tileHeight!: number;
    /**
-    * Width of a tile in pixels 
+    * Width of a tile in pixels
     */
    tileWidth!: number;
 
@@ -161,11 +161,15 @@ export class TiledTilesetTile {
    }
 
    getAnimation(map: TiledMapResource): Animation | null {
-      if (this.animation) {
+      if (this.animation && !map.skipGraphics) {
          let exFrames: Frame[] = [];
          for (let frame of this.animation) {
+            const graphic = map.getSpriteForGid(frame.tileid + this.tileset.firstGid);
+            if (!graphic) {
+                throw new Error('Could not get sprite for frame: ' + (frame.tileid + this.tileset.firstGid));
+            }
             exFrames.push({
-               graphic: map.getSpriteForGid(frame.tileid + this.tileset.firstGid),
+               graphic,
                duration: frame.duration
             });
          }
@@ -253,7 +257,7 @@ export const parseExternalTsx = (tsxData: string, firstGid: number, source: stri
    rawTileset.image = rawTsx.image?.source;
    rawTileset.spacing = isNaN(rawTsx.spacing) ? 0 : rawTsx.spacing;
    _convertToArray(rawTsx, "tile", true);
-   rawTsx.tiles.forEach((t: any) => { 
+   rawTsx.tiles.forEach((t: any) => {
       if (t.image?.source) {
         t.image = t.image.source;
       }

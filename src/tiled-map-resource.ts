@@ -55,6 +55,10 @@ export enum TiledMapFormat {
    JSON = 'JSON'
 }
 
+
+type ResourceBuilder =
+   <T>(...args: ConstructorParameters<typeof Resource<T>>) => Loadable<T>;
+
 export interface TiledMapOptions {
    /**
     * By default files ending in .tmx are treated as TMX format, otherwise treated as JSON format
@@ -65,10 +69,26 @@ export interface TiledMapOptions {
     * Override the starting auto-incrementing z-index value (default: `-1`). Each layer will increment this number by 1 unless the layer specifies it's own custom `z-index` property.
     */
    startingLayerZIndex?: number;
+
+   /**
+    * Skip the loading of sprites, graphics, and animations (default: `false`). Useful for running in a headless node or server environment.
+    */
+   skipGraphics?: boolean;
+
+   /**
+    * Skip the loading of the camera(s) from the tiled data (default: `false`). Useful for running in a headless node or server environment.
+    */
+   skipCamera?: boolean;
+
+   /**
+    * A function that determines the type of loader which is used for fetching tile and image resources. By default, this just builds a regular Excalibur `Resource`.
+    */
+   resourceBuilder?: ResourceBuilder;
 }
 
 export class TiledMapResource implements Loadable<TiledMap> {
-   private _resource: Resource<string | RawTiledMap>;
+   private _resource: Loadable<string | RawTiledMap>;
+   private _resourceBuilder: ResourceBuilder;
    public data!: TiledMap;
 
    readonly mapFormat: TiledMapFormat;
@@ -79,6 +99,8 @@ export class TiledMapResource implements Loadable<TiledMap> {
    public layers?: TileMap[] = [];
    public isoLayers: IsometricMap[] = [];
    private _layerZIndexStart = -1;
+   public readonly skipGraphics: boolean = false;
+   public readonly skipCamera: boolean = false;
 
    private _mapToRawLayer = new Map<TileMap|IsometricMap, RawTiledLayer>();
 
@@ -88,20 +110,23 @@ export class TiledMapResource implements Loadable<TiledMap> {
    public convertPath: (originPath: string, relativePath: string) => string;
 
    /**
-    * 
+    *
     * @param path Specify a path to your Tiled map source files (usually path/to/my_map.tmx)
-    * @param options Optionally configure other aspects of the tilemap like start layer z-index and map format 
+    * @param options Optionally configure other aspects of the tilemap like start layer z-index and map format
     */
    constructor(public path: string, options?: TiledMapOptions) {
-      const { mapFormatOverride, startingLayerZIndex } = { ...options };
+      const { mapFormatOverride, startingLayerZIndex, skipCamera, skipGraphics, resourceBuilder } = { ...options };
       this._layerZIndexStart = startingLayerZIndex ?? this._layerZIndexStart;
+      this._resourceBuilder = resourceBuilder ?? ((...args) => new Resource(...args));
+      this.skipGraphics = skipGraphics ?? this.skipGraphics;
+      this.skipCamera = skipCamera ?? this.skipCamera;
       const detectedType = mapFormatOverride ?? (path.includes('.tmx') ? TiledMapFormat.TMX : TiledMapFormat.JSON);
       switch (detectedType) {
          case TiledMapFormat.TMX:
-            this._resource = new Resource(path, 'text');
+            this._resource = this._resourceBuilder(path, 'text');
             break;
          case TiledMapFormat.JSON:
-            this._resource = new Resource(path, 'json');
+            this._resource = this._resourceBuilder(path, 'json');
             break;
          default:
             throw `The format ${detectedType} is not currently supported. Please export Tiled map as JSON.`;
@@ -284,10 +309,12 @@ export class TiledMapResource implements Loadable<TiledMap> {
                   }
                   actor.addComponent(new TiledObjectComponent(tile));
                   actor.graphics.anchor = this.isIsometric() ? vec(.5, 1) : vec(0, 1);
-                  // respect tile size on sprite
-                  sprite.destSize.width = tile.width ?? sprite.destSize.width;
-                  sprite.destSize.height = tile.height ?? sprite.destSize.height;
-                  actor.graphics.use(sprite);
+                  if (sprite) {
+                     // respect tile size on sprite
+                     sprite.destSize.width = tile.width ?? sprite.destSize.width;
+                     sprite.destSize.height = tile.height ?? sprite.destSize.height;
+                     actor.graphics.use(sprite);
+                  }
                   if (this.isIsometric()) {
                      // The component just needs the tile width/height and row/cols
                      // all the layers are the same so we can just use the first
@@ -325,7 +352,7 @@ export class TiledMapResource implements Loadable<TiledMap> {
 
    /**
     * Adds the TileMap and any parsed objects from Tiled into the Scene
-    * @param scene 
+    * @param scene
     */
    public addTiledMapToScene(scene: Scene) {
       const tms = this.getTileMapLayers();
@@ -352,8 +379,10 @@ export class TiledMapResource implements Loadable<TiledMap> {
 
       const ex: ExcaliburData = {};
       if (excaliburObjectLayers.length > 0) {
-         // Parse cameras find the first
-         ex.camera = excaliburObjectLayers.find(objectlayer => objectlayer.getObjectByClass('camera'))?.getCamera();
+         if (!this.skipCamera) {
+            // Parse cameras find the first
+            ex.camera = excaliburObjectLayers.find(objectlayer => objectlayer.getObjectByClass('camera'))?.getCamera();
+         }
          // Parse colliders
          ex.colliders = [];
          for (let objectLayer of excaliburObjectLayers) {
@@ -425,7 +454,8 @@ export class TiledMapResource implements Loadable<TiledMap> {
          // existing data, and load the image and sprite
          if (ts.source) {
             const type = ts.source.includes('.tsx') ? 'text' : 'json';
-            var tileset = new Resource<RawTiledTileset>(this.convertPath(this.path, ts.source), type);
+            const tilesetPath = this.convertPath(this.path, ts.source);
+            var tileset = this._resourceBuilder<RawTiledTileset>(tilesetPath, type);
 
             externalTilesets.push(tileset.load().then((external: any) => {
                if (type === 'text') {
@@ -436,7 +466,7 @@ export class TiledMapResource implements Loadable<TiledMap> {
                Object.assign(ts, external);
                tiledMap.tileSets.push(external);
             }, () => {
-               Logger.getInstance().error(`[Tiled] Error loading external tileset file ${tileset.path}`)
+               Logger.getInstance().error(`[Tiled] Error loading external tileset file ${tilesetPath}`)
             }));
          }
       });
@@ -447,43 +477,45 @@ export class TiledMapResource implements Loadable<TiledMap> {
          // external images
          let externalImages: Promise<any>[] = [];
 
-         // retrieve images from tilesets and create textures
-         tiledMap.rawMap.tilesets.forEach(ts => {
-            let tileSetImages: string[] = [];
-            // if image is specified it's a single image tileset
-            if (ts.image) {
-               if (ts.source) {
-                  // if external tileset "source" is specified and images are relative to external tileset
-                  tileSetImages = [this.convertPath(ts.source, ts.image)];
-               } else {
-                  // otherwise for embedded tilesets, images are relative to the tmx (this.path)
-                  tileSetImages = [this.convertPath(this.path, ts.image)];
-               }
-               for (let image of tileSetImages) {
-                  const tx = new ImageSource(image);
-                  this.imageMap[ts.firstgid] = tx;
-                  externalImages.push(tx.load());
-                  Logger.getInstance().debug("[Tiled] Loading associated tileset image: " + ts.image);
-               }
-            } else {
-               // otherwise it's a collection of images tileset
-               for (let tile of ts.tiles) {
-                  let tileImage: string;
+         if (!this.skipGraphics) {
+            // retrieve images from tilesets and create textures
+            tiledMap.rawMap.tilesets.forEach(ts => {
+               let tileSetImages: string[] = [];
+               // if image is specified it's a single image tileset
+               if (ts.image) {
                   if (ts.source) {
-                     tileImage = this.convertPath(ts.source, tile.image);
+                     // if external tileset "source" is specified and images are relative to external tileset
+                     tileSetImages = [this.convertPath(ts.source, ts.image)];
                   } else {
-                     tileImage = this.convertPath(this.path, tile.image);
+                     // otherwise for embedded tilesets, images are relative to the tmx (this.path)
+                     tileSetImages = [this.convertPath(this.path, ts.image)];
                   }
-                  const tx = new ImageSource(tileImage);
-                  externalImages.push(tx.load());
-                  if (!this.tileImageMap[ts.firstgid]) {
-                     this.tileImageMap[ts.firstgid] = [];
+                  for (let image of tileSetImages) {
+                     const tx = new ImageSource(image);
+                     this.imageMap[ts.firstgid] = tx;
+                     externalImages.push(tx.load());
+                     Logger.getInstance().debug("[Tiled] Loading associated tileset image: " + ts.image);
                   }
-                  this.tileImageMap[ts.firstgid].push([tile, tx]);
-                  Logger.getInstance().debug("[Tiled] Loading associated tileset image: " + tileImage);
+               } else {
+                  // otherwise it's a collection of images tileset
+                  for (let tile of ts.tiles) {
+                     let tileImage: string;
+                     if (ts.source) {
+                        tileImage = this.convertPath(ts.source, tile.image);
+                     } else {
+                        tileImage = this.convertPath(this.path, tile.image);
+                     }
+                     const tx = new ImageSource(tileImage);
+                     externalImages.push(tx.load());
+                     if (!this.tileImageMap[ts.firstgid]) {
+                        this.tileImageMap[ts.firstgid] = [];
+                     }
+                     this.tileImageMap[ts.firstgid].push([tile, tx]);
+                     Logger.getInstance().debug("[Tiled] Loading associated tileset image: " + tileImage);
+                  }
                }
-            }
-         });
+            });
+         }
 
          return Promise.all(externalImages).then(() => {
             this._createTileMap();
@@ -513,7 +545,7 @@ export class TiledMapResource implements Loadable<TiledMap> {
 
    /**
     * Given a Tiled gid (global identifier) return the Tiled tileset data
-    * @param gid 
+    * @param gid
     */
    public getTilesetForTile(gid: number): TiledTileset {
       if (this.data) {
@@ -530,9 +562,12 @@ export class TiledMapResource implements Loadable<TiledMap> {
 
    /**
     * Given a Tiled TileSet gid, return the equivalent Excalibur Sprite
-    * @param gid 
+    * @param gid
     */
-   public getSpriteForGid(gid: number): Sprite {
+   public getSpriteForGid(gid: number): Sprite | null {
+      if (this.skipGraphics) {
+         return null;
+      }
       const h = isFlippedHorizontally(gid);
       const v = isFlippedVertically(gid);
       const d = isFlippedDiagonally(gid);
@@ -617,6 +652,9 @@ export class TiledMapResource implements Loadable<TiledMap> {
    }
 
    public getAnimationForGid(gid: number): Animation | null {
+      if (this.skipGraphics) {
+         return null;
+      }
       const normalizedGid = getCanonicalGid(gid);
       const tileset = this.getTilesetForTile(normalizedGid);
       const tileIndex = normalizedGid - tileset.firstGid;
@@ -643,45 +681,47 @@ export class TiledMapResource implements Loadable<TiledMap> {
     * Creates the Excalibur tile map representation
     */
    private _createTileMap() {
-      // register sprite sheets for each tileset in map
-      for (const tileset of this.data.rawMap.tilesets) {
-         const spacing = tileset.spacing ?? 0;
-         const cols = Math.floor((tileset.imagewidth + spacing) / (tileset.tilewidth + spacing));
-         const rows = Math.floor((tileset.imageheight + spacing) / (tileset.tileheight + spacing));
-         // Single image tilesets
-         if (this.imageMap[tileset.firstgid]) {
-            // Tiled and Excalibur use the same words for different things :facepalm:
-            // Tiled margin is the same as Excalibur originOffset
-            // Tiled spacing is the same as Excalibur margin
-            const ss = SpriteSheet.fromImageSource({
-               image: this.imageMap[tileset.firstgid],
-               grid: {
-                  columns: cols,
-                  rows: rows,
-                  spriteWidth: tileset.tilewidth,
-                  spriteHeight: tileset.tileheight
-               },
-               spacing: {
-                  originOffset: {
-                     x: tileset.margin ?? 0,
-                     y: tileset.margin ?? 0
+      if (!this.skipGraphics) {
+         // register sprite sheets for each tileset in map
+         for (const tileset of this.data.rawMap.tilesets) {
+            const spacing = tileset.spacing ?? 0;
+            const cols = Math.floor((tileset.imagewidth + spacing) / (tileset.tilewidth + spacing));
+            const rows = Math.floor((tileset.imageheight + spacing) / (tileset.tileheight + spacing));
+            // Single image tilesets
+            if (this.imageMap[tileset.firstgid]) {
+               // Tiled and Excalibur use the same words for different things :facepalm:
+               // Tiled margin is the same as Excalibur originOffset
+               // Tiled spacing is the same as Excalibur margin
+               const ss = SpriteSheet.fromImageSource({
+                  image: this.imageMap[tileset.firstgid],
+                  grid: {
+                     columns: cols,
+                     rows: rows,
+                     spriteWidth: tileset.tilewidth,
+                     spriteHeight: tileset.tileheight
                   },
-                  margin: {
-                     x: tileset.spacing ?? 0,
-                     y: tileset.spacing ?? 0,
+                  spacing: {
+                     originOffset: {
+                        x: tileset.margin ?? 0,
+                        y: tileset.margin ?? 0
+                     },
+                     margin: {
+                        x: tileset.spacing ?? 0,
+                        y: tileset.spacing ?? 0,
+                     }
                   }
-               }
-            });
-            this.sheetMap[tileset.firstgid.toString()] = ss;
-         // Image collection tilesets
-         } else {
-            const tiles = this.tileImageMap[tileset.firstgid];
-            const sprites = tiles.map(([tile, imageSource]) => {
-               const sprite = imageSource.toSprite();
-               return sprite;
-            })
-            const ss = new SpriteSheet({sprites});
-            this.sheetMap[tileset.firstgid.toString()] = ss;
+               });
+               this.sheetMap[tileset.firstgid.toString()] = ss;
+            // Image collection tilesets
+            } else {
+               const tiles = this.tileImageMap[tileset.firstgid];
+               const sprites = tiles.map(([tile, imageSource]) => {
+                  const sprite = imageSource.toSprite();
+                  return sprite;
+               })
+               const ss = new SpriteSheet({sprites});
+               this.sheetMap[tileset.firstgid.toString()] = ss;
+            }
          }
       }
 
@@ -706,20 +746,26 @@ export class TiledMapResource implements Loadable<TiledMap> {
                }
 
                // I know this looks goofy, but the entity and the layer "it belongs" to are the same here
-               tileMapLayer.z = this._calculateZIndex(layer, layer); 
+               tileMapLayer.z = this._calculateZIndex(layer, layer);
                for (let i = 0; i < rawLayer.data.length; i++) {
                   let gid = <number>rawLayer.data[i];
                   if (gid !== 0) {
-                     const sprite = this.getSpriteForGid(gid);
-                     tileMapLayer.tiles[i].addGraphic(sprite);
+                     if (!this.skipGraphics) {
+                        const sprite = this.getSpriteForGid(gid);
+                        if (sprite) {
+                           tileMapLayer.tiles[i].addGraphic(sprite);
+                        }
+                     }
                      const colliders = this.getCollidersForGid(gid);
                      for (let collider of colliders) {
                         tileMapLayer.tiles[i].addCollider(collider);
                      }
-                     const animation = this.getAnimationForGid(gid);
-                     if (animation) {
-                        tileMapLayer.tiles[i].clearGraphics();
-                        tileMapLayer.tiles[i].addGraphic(animation);
+                     if (!this.skipGraphics) {
+                        const animation = this.getAnimationForGid(gid);
+                        if (animation) {
+                           tileMapLayer.tiles[i].clearGraphics();
+                           tileMapLayer.tiles[i].addGraphic(animation);
+                        }
                      }
                   }
                }
@@ -743,8 +789,12 @@ export class TiledMapResource implements Loadable<TiledMap> {
                for (let i = 0; i < rawLayer.data.length; i++) {
                   let gid = <number>rawLayer.data[i];
                   if (gid !== 0) {
-                     const sprite = this.getSpriteForGid(gid);
-                     iso.tiles[i].addGraphic(sprite);
+                     if (!this.skipGraphics) {
+                        const sprite = this.getSpriteForGid(gid);
+                        if (sprite) {
+                           iso.tiles[i].addGraphic(sprite);
+                        }
+                     }
                      const colliders = this.getCollidersForGid(gid);
                      for (let collider of colliders) {
                         iso.tiles[i].addCollider(collider);
