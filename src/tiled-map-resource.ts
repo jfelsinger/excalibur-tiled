@@ -55,9 +55,8 @@ export enum TiledMapFormat {
    JSON = 'JSON'
 }
 
-
 type ResourceBuilder =
-   <T>(...args: ConstructorParameters<typeof Resource<T>>) => Loadable<T>;
+   <T>(path: ConstructorParameters<typeof Resource<T>>[0], responseType: ('text'|'json'), bustCache?: ConstructorParameters<typeof Resource<T>>[2]) => Loadable<T>;
 
 export interface TiledMapOptions {
    /**
