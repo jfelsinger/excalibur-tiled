@@ -1,11 +1,11 @@
 // tmx xml parsing
-import { Matrix, vec, Animation, Sprite, Frame, AnimationStrategy } from 'excalibur';
+import { Matrix, vec, Animation, Sprite, type Frame, AnimationStrategy } from 'excalibur';
 import * as parser from 'fast-xml-parser'
 import { TiledObjectGroup } from '.';
 
-import { TiledFrame, TiledGrid, TiledMapTerrain, TiledProperty, TiledTileOffset, TiledWangSet } from "./tiled-types";
-import { RawTiledTileset } from "./raw-tiled-tileset";
-import { RawTilesetTile } from "./raw-tileset-tile";
+import type { TiledFrame, TiledGrid, TiledMapTerrain, TiledProperty, TiledTileOffset, TiledWangSet } from "./tiled-types";
+import type { RawTiledTileset } from "./raw-tiled-tileset";
+import type { RawTilesetTile } from "./raw-tileset-tile";
 import { TiledMapResource } from './tiled-map-resource';
 import { getProperty } from './tiled-entity';
 

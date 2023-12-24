@@ -1,7 +1,7 @@
-import { ExcaliburCamera, TiledPoint } from "./tiled-types";
+import type { ExcaliburCamera, TiledPoint } from "./tiled-types";
 import { TiledEntity } from "./tiled-entity";
-import { RawTiledLayer } from "./raw-tiled-layer";
-import { RawTiledObject } from "./raw-tiled-object";
+import type { RawTiledLayer } from "./raw-tiled-layer";
+import type { RawTiledObject } from "./raw-tiled-object";
 import { toRadians } from "excalibur";
 
 export interface Polygon {
@@ -115,7 +115,7 @@ export class TiledObjectGroup extends TiledEntity {
       resultObjectGroup.order = objectGroup.order;
       for (let object of objectGroup.objects) {
          resultObjectGroup.objects.push(TiledObject.parse(object));
-      } 
+      }
       return resultObjectGroup;
    }
 }

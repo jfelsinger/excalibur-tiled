@@ -1,5 +1,5 @@
-import { TiledChunk, TiledProperty, TiledEncoding, TiledCompression } from './tiled-types';
-import { RawTiledObject } from "./raw-tiled-object";
+import type { TiledChunk, TiledProperty, TiledEncoding, TiledCompression } from './tiled-types';
+import type { RawTiledObject } from "./raw-tiled-object";
 
 
 export interface RawTiledLayer {

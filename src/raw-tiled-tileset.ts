@@ -1,5 +1,5 @@
-import { RawTilesetTile } from './raw-tileset-tile';
-import { TiledGrid, TiledProperty, TiledTileOffset, TiledMapTerrain, TiledWangSet } from './tiled-types';
+import type { RawTilesetTile } from './raw-tileset-tile';
+import type { TiledGrid, TiledProperty, TiledTileOffset, TiledMapTerrain, TiledWangSet } from './tiled-types';
 
 
 export interface RawTiledTileset {

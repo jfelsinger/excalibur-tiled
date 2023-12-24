@@ -1,6 +1,6 @@
-import { TiledCompression, TiledEncoding } from "./tiled-types";
+import type { TiledCompression, TiledEncoding } from "./tiled-types";
 import { TiledEntity } from "./tiled-entity";
-import { RawTiledLayer } from "./raw-tiled-layer";
+import { type RawTiledLayer } from "./raw-tiled-layer";
 import { vec, Vector } from "excalibur";
 
 // Most significant byte of 32 bit id contains flags for flipping
@@ -11,7 +11,7 @@ export const FLIPPED_DIAGONALLY_FLAG   = 0x20000000;
 
 /**
  * Inspects gid for horizontal flag
- * @param gid 
+ * @param gid
  */
 export const isFlippedHorizontally = (gid: number): boolean => {
    return !!(gid & FLIPPED_HORIZONTALLY_FLAG);
@@ -19,7 +19,7 @@ export const isFlippedHorizontally = (gid: number): boolean => {
 
 /**
  * Inspects gid for vertical flag
- * @param gid 
+ * @param gid
  */
 export const isFlippedVertically = (gid: number): boolean => {
    return !!(gid & FLIPPED_VERTICALLY_FLAG);
@@ -27,7 +27,7 @@ export const isFlippedVertically = (gid: number): boolean => {
 
 /**
  * Inspects gid for diagonal flag (anti-diagonal flip enables tile rotation)
- * @param gid 
+ * @param gid
  */
 export const isFlippedDiagonally = (gid: number): boolean => {
    return !!(gid & FLIPPED_DIAGONALLY_FLAG);
@@ -36,7 +36,7 @@ export const isFlippedDiagonally = (gid: number): boolean => {
 
 /**
  * Removes bit flags from gid
- * @param gid 
+ * @param gid
  */
 export const getCanonicalGid = (gid: number): number => {
    return gid & ~(FLIPPED_HORIZONTALLY_FLAG |
@@ -49,10 +49,10 @@ export const getCanonicalGid = (gid: number): number => {
 export class TiledLayer extends TiledEntity {
    /**
     * Array of gid's (global Tiled identifiers) that point to a unique tile
-    * 
+    *
     * Note: the most significant byte may have flipped data encoded making the gid appear like a negative
     * integer.
-    * 
+    *
     * * Use `getCanonicalGid(gid)` to strip the bit flags from the high order byte
     * * Check flipped flags with:
     *   * `isFlippedDiagonally(gid)`

@@ -1,5 +1,5 @@
-import { RawTiledLayer } from './raw-tiled-layer';
-import { TiledFrame, TiledProperty } from './tiled-types';
+import type { RawTiledLayer } from './raw-tiled-layer';
+import type { TiledFrame, TiledProperty } from './tiled-types';
 
 
 export interface RawTilesetTile {

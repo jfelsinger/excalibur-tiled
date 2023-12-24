@@ -12,7 +12,7 @@ import {
    FontUnit,
    Label,
    Sprite,
-   Loadable,
+   type Loadable,
    TextAlign,
    BaseAlign,
    Flags,
@@ -30,17 +30,17 @@ import {
    Text,
    BoundingBox
 } from 'excalibur';
-import { ExcaliburData } from './tiled-types';
-import { RawTiledTileset } from "./raw-tiled-tileset";
-import { RawTiledLayer } from "./raw-tiled-layer";
-import { RawTiledMap } from "./raw-tiled-map";
+import { type ExcaliburData } from './tiled-types';
+import { type RawTiledTileset } from "./raw-tiled-tileset";
+import { type RawTiledLayer } from "./raw-tiled-layer";
+import { type RawTiledMap } from "./raw-tiled-map";
 import { TiledMap } from './tiled-map-parser';
 import { parseExternalJson, parseExternalTsx, TiledTileset, TiledTilesetTile } from './tiled-tileset';
 import { getCanonicalGid, isFlippedDiagonally, isFlippedHorizontally, isFlippedVertically } from './tiled-layer';
 import { getProperty, TiledEntity } from './tiled-entity';
 import { TiledObjectComponent } from './tiled-object-component';
 import { TiledLayerComponent } from './tiled-layer-component';
-import { RawTilesetTile, TiledLayer, TiledObjectGroup } from '.';
+import { type RawTilesetTile, TiledLayer, TiledObjectGroup } from '.';
 
 export enum TiledMapFormat {
 

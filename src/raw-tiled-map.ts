@@ -1,6 +1,6 @@
-import { ExcaliburData, TiledProperty } from './tiled-types';
-import { RawTiledTileset } from "./raw-tiled-tileset";
-import { RawTiledLayer } from "./raw-tiled-layer";
+import type { ExcaliburData, TiledProperty } from './tiled-types';
+import type { RawTiledTileset } from "./raw-tiled-tileset";
+import type { RawTiledLayer } from "./raw-tiled-layer";
 
 /**
  * Tiled Map Interface

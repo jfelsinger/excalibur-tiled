@@ -1,10 +1,10 @@
-import { TiledProperty } from "./tiled-types";
+import type { TiledProperty } from "./tiled-types";
 
 /**
  * Get tile entry property by property name
- * @param properties 
- * @param prop 
- * @returns 
+ * @param properties
+ * @param prop
+ * @returns
  */
 export const getProperty = <T = unknown>(properties: TiledProperty[], prop: string): TiledProperty<T> | undefined => {
    if (Array.isArray(properties)) {

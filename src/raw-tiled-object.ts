@@ -1,5 +1,5 @@
-import { RawTiledText } from './raw-tiled-text';
-import { TiledProperty, TiledPoint } from './tiled-types';
+import type { RawTiledText } from './raw-tiled-text';
+import type { TiledProperty, TiledPoint } from './tiled-types';
 
 
 export interface RawTiledObject {

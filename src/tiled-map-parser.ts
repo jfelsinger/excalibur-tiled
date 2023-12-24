@@ -5,7 +5,7 @@ import { inflate as pakoInflate } from 'pako';
 // zstd
 import { ZSTDDecoder } from 'zstddec';
 
-import { RawTiledMap } from "./raw-tiled-map";
+import type { RawTiledMap } from "./raw-tiled-map";
 import { TiledLayer } from "./tiled-layer";
 import { TiledObjectGroup } from "./tiled-object";
 import { TiledTileset } from './tiled-tileset';
@@ -44,7 +44,7 @@ export class TiledMap {
     */
    tileSets: TiledTileset[] = [];
    /**
-    * Tiled Objects in this tiled map, used for storing 
+    * Tiled Objects in this tiled map, used for storing
     */
    objectGroups: TiledObjectGroup[] = [];
 
@@ -81,7 +81,7 @@ export class TiledMap {
             obj[prop + (plurlalize ? 's' : '')] = [];
             return;
          }
-   
+
          obj[prop + (plurlalize ? 's' : '')] = Array.isArray(obj[prop]) ? obj[prop] : [obj[prop]];
          if (plurlalize) {
             delete obj[prop];
@@ -129,7 +129,7 @@ export class TiledMap {
             objectlayer.objects.forEach((o: any) => o.properties = o.properties?.property ?? []);
             objectlayer.objects.forEach((o: any) => _convertToArray(o, 'properties'));
             delete objectlayer.object;
-         } else { 
+         } else {
             continue;
          }
 
@@ -191,7 +191,7 @@ export class TiledMap {
             }
            tileset.objectalignment = tileset.objectalignment ?? 'unspecified';
            _convertToArray(tileset, 'tile', true);
-           tileset.tiles.forEach((t: any) => { 
+           tileset.tiles.forEach((t: any) => {
               if (t.image?.source) {
                 t.image = t.image.source;
               }
@@ -269,7 +269,7 @@ export class TiledMap {
 }
 
 const tagLayerWithOriginalOrder = (rawMap: RawTiledMap) => {
-   let order = 0; 
+   let order = 0;
    for (let layer of rawMap.layers) {
       layer.order = order++;
    }
