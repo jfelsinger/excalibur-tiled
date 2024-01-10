@@ -84,7 +84,7 @@ export class Tileset implements Properties {
       this.tiledTileset = tiledTileset;
       this.firstGid = firstGid;
 
-      if (isTiledTilesetSingleImage(tiledTileset) && image) {
+      if (isTiledTilesetSingleImage(tiledTileset)) {
          mapProps(this, tiledTileset.properties);
          const spacing = tiledTileset.spacing;
          const columns = Math.floor((tiledTileset.imagewidth + spacing) / (tiledTileset.tilewidth + spacing));
@@ -95,25 +95,27 @@ export class Tileset implements Properties {
          this.verticalFlipTransform = AffineMatrix.identity().translate(0, tiledTileset.tileheight).scale(1, -1);
          this.diagonalFlipTransform = AffineMatrix.identity().translate(0, 0).rotate(-Math.PI / 2).scale(-1, 1);
          this.objectalignment = tiledTileset.objectalignment ?? (this.orientation === 'orthogonal' ? 'bottomleft' : 'bottom');
-         this.spritesheet =  SpriteSheet.fromImageSource({
-            image,
-            grid: {
-               rows,
-               columns,
-               spriteWidth: tiledTileset.tilewidth,
-               spriteHeight: tiledTileset.tileheight
-            },
-            spacing: {
-               originOffset: {
-                  x: tiledTileset.margin ?? 0,
-                  y: tiledTileset.margin ?? 0
+         if (image) {
+            this.spritesheet =  SpriteSheet.fromImageSource({
+               image,
+               grid: {
+                  rows,
+                  columns,
+                  spriteWidth: tiledTileset.tilewidth,
+                  spriteHeight: tiledTileset.tileheight
                },
-               margin: {
-                  x: tiledTileset.spacing ?? 0,
-                  y: tiledTileset.spacing ?? 0
+               spacing: {
+                  originOffset: {
+                     x: tiledTileset.margin ?? 0,
+                     y: tiledTileset.margin ?? 0
+                  },
+                  margin: {
+                     x: tiledTileset.spacing ?? 0,
+                     y: tiledTileset.spacing ?? 0
+                  }
                }
-            }
-         });
+            });
+         }
          this.tileCount = tiledTileset.tilecount;
          this.tileWidth = tiledTileset.tilewidth;
          this.tileHeight = tiledTileset.tileheight;
