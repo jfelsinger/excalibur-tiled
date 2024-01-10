@@ -84,7 +84,7 @@ export class Tileset implements Properties {
       this.tiledTileset = tiledTileset;
       this.firstGid = firstGid;
 
-      if (isTiledTilesetSingleImage(tiledTileset) && image) {
+      if (isTiledTilesetSingleImage(tiledTileset)) {
          mapProps(this, tiledTileset.properties);
          const spacing = tiledTileset.spacing;
          const columns = Math.floor((tiledTileset.imagewidth + spacing) / (tiledTileset.tilewidth + spacing));
@@ -95,6 +95,7 @@ export class Tileset implements Properties {
          this.verticalFlipTransform = AffineMatrix.identity().translate(0, tiledTileset.tileheight).scale(1, -1);
          this.diagonalFlipTransform = AffineMatrix.identity().translate(0, 0).rotate(-Math.PI / 2).scale(-1, 1);
          this.objectalignment = tiledTileset.objectalignment ?? (this.orientation === 'orthogonal' ? 'bottomleft' : 'bottom');
+         if (image) {
          this.spritesheet =  SpriteSheet.fromImageSource({
             image,
             grid: {
@@ -114,6 +115,8 @@ export class Tileset implements Properties {
                }
             }
          });
+         }
+
          this.tileCount = tiledTileset.tilecount;
          this.tileWidth = tiledTileset.tilewidth;
          this.tileHeight = tiledTileset.tileheight;
@@ -130,6 +133,7 @@ export class Tileset implements Properties {
             }
          }
       }
+
       if (isTiledTilesetCollectionOfImages(tiledTileset) && tiledTileset.firstgid !== undefined && tileToImage) {
          this.horizontalFlipTransform = AffineMatrix.identity().translate(tiledTileset.tilewidth, 0).scale(-1, 1);
          this.verticalFlipTransform = AffineMatrix.identity().translate(0, tiledTileset.tileheight).scale(1, -1);

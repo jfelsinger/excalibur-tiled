@@ -9,13 +9,16 @@ function parseToElement(xml: string): Document {
 
   try {
     const { JSDOM } = require('jsdom');
-    const dom = new JSDOM(xml);
+        const dom = new JSDOM(xml, {
+            contentType: 'application/xml',
+            encoding: 'utf-8',
+        });
     return dom.window.document as Document;
-  } catch(e) {
-    console.error('Could not get JSDOM parser', e);
-    throw e;
-  }
+    } catch (e) { /* ignored */ }
 
+    const error = new Error('Could not find DOM parser');
+    console.error(error.message, error);
+    throw error;
 }
 
 const TiledIntProperty = z.object({
