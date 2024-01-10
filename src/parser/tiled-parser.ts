@@ -1,4 +1,23 @@
 import { z } from 'zod';
+import * as jsdom from 'jsdom';
+
+function parseToElement(xml: string): Document {
+  if (typeof DOMParser !== 'undefined') {
+    const domParser = new DOMParser();
+    return domParser.parseFromString(xml, 'application/xml');
+  }
+
+  try {
+    const { JSDOM } = require('jsdom');
+    const dom = new JSDOM(xml);
+    return dom.window.document as Document;
+  } catch(e) {
+    console.error('Could not get JSDOM parser', e);
+    throw e;
+  }
+
+}
+
 const TiledIntProperty = z.object({
    name: z.string(),
    type: z.literal('int'),
@@ -874,8 +893,7 @@ export class TiledParser {
    }
 
    parseExternalTemplate(txXml: string, strict = true): TiledTemplate {
-      const domParser = new DOMParser();
-      const doc = domParser.parseFromString(txXml, 'application/xml');
+      const doc = parseToElement(txXml);
       const templateElement = doc.querySelector('template') as Element;
       const template: any = {};
       template.type = 'template';
@@ -902,11 +920,10 @@ export class TiledParser {
 
    /**
     * Takes Tiled tmx xml and produces the equivalent Tiled txj (json) content
-    * @param tsxXml 
+    * @param tsxXml
     */
    parseExternalTileset(tsxXml: string, strict = true): TiledTilesetFile {
-      const domParser = new DOMParser();
-      const doc = domParser.parseFromString(tsxXml, 'application/xml');
+      const doc = parseToElement(tsxXml);
       const tilesetElement = doc.querySelector('tileset') as Element;
 
       const tileset = this.parseTileset(tilesetElement, strict);
@@ -929,13 +946,11 @@ export class TiledParser {
 
    /**
     * Takes Tiled tmx xml and produces the equivalent Tiled tmj (json) content
-    * @param tmxXml 
-    * @returns 
+    * @param tmxXml
+    * @returns
     */
    parse(tmxXml: string, strict = true): TiledMap {
-      const domParser = new DOMParser();
-      const doc = domParser.parseFromString(tmxXml, 'application/xml');
-
+      const doc = parseToElement(tmxXml);
       const mapElement = doc.querySelector('map') as Element;
 
       const tiledMap: any = {};
@@ -959,7 +974,7 @@ export class TiledParser {
             case 'layer': {
                const layer = this.parseTileLayer(node, tiledMap.infinite, strict);
                tiledMap.layers.push(layer);
-               
+
                break;
             }
             case 'properties': {
