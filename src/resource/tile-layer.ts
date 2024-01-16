@@ -111,12 +111,12 @@ export class TileLayer implements Layer {
       const headless = this.resource.headless;
 
       if (!headless) {
-      let sprite = tileset.getSpriteForGid(gid);
-      if (hasTint) {
-         sprite = sprite.clone();
-         sprite.tint = tint;
-      }
-      tile.addGraphic(sprite, { offset: tileset.tileOffset });
+         let sprite = tileset.getSpriteForGid(gid);
+         if (hasTint) {
+            sprite = sprite.clone();
+            sprite.tint = tint;
+         }
+         tile.addGraphic(sprite, { offset: tileset.tileOffset });
       }
 
 

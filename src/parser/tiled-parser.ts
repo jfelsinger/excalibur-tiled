@@ -505,7 +505,7 @@ export class TiledParser {
     * @param xml
     * @returns
     */
-   _parseToElement(xml: string): Document {
+   _parseToDocument(xml: string): Document {
       if (typeof DOMParser !== 'undefined') {
          const domParser = new DOMParser();
          return domParser.parseFromString(xml, 'application/xml');
@@ -902,7 +902,7 @@ export class TiledParser {
    }
 
    parseExternalTemplate(txXml: string, strict = true): TiledTemplate {
-      const doc = this._parseToElement(txXml);
+      const doc = this._parseToDocument(txXml);
       const templateElement = doc.querySelector('template') as Element;
       const template: any = {};
       template.type = 'template';
@@ -932,7 +932,7 @@ export class TiledParser {
     * @param tsxXml
     */
    parseExternalTileset(tsxXml: string, strict = true): TiledTilesetFile {
-      const doc = this._parseToElement(tsxXml);
+      const doc = this._parseToDocument(tsxXml);
       const tilesetElement = doc.querySelector('tileset') as Element;
 
       const tileset = this.parseTileset(tilesetElement, strict);
@@ -959,7 +959,7 @@ export class TiledParser {
     * @returns
     */
    parse(tmxXml: string, strict = true): TiledMap {
-      const doc = this._parseToElement(tmxXml);
+      const doc = this._parseToDocument(tmxXml);
       const mapElement = doc.querySelector('map') as Element;
 
       const tiledMap: any = {};
