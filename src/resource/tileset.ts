@@ -96,27 +96,26 @@ export class Tileset implements Properties {
          this.diagonalFlipTransform = AffineMatrix.identity().translate(0, 0).rotate(-Math.PI / 2).scale(-1, 1);
          this.objectalignment = tiledTileset.objectalignment ?? (this.orientation === 'orthogonal' ? 'bottomleft' : 'bottom');
          if (image) {
-         this.spritesheet =  SpriteSheet.fromImageSource({
-            image,
-            grid: {
-               rows,
-               columns,
-               spriteWidth: tiledTileset.tilewidth,
-               spriteHeight: tiledTileset.tileheight
-            },
-            spacing: {
-               originOffset: {
-                  x: tiledTileset.margin ?? 0,
-                  y: tiledTileset.margin ?? 0
+            this.spritesheet =  SpriteSheet.fromImageSource({
+               image,
+               grid: {
+                  rows,
+                  columns,
+                  spriteWidth: tiledTileset.tilewidth,
+                  spriteHeight: tiledTileset.tileheight
                },
-               margin: {
-                  x: tiledTileset.spacing ?? 0,
-                  y: tiledTileset.spacing ?? 0
+               spacing: {
+                  originOffset: {
+                     x: tiledTileset.margin ?? 0,
+                     y: tiledTileset.margin ?? 0
+                  },
+                  margin: {
+                     x: tiledTileset.spacing ?? 0,
+                     y: tiledTileset.spacing ?? 0
+                  }
                }
-            }
-         });
+            });
          }
-
          this.tileCount = tiledTileset.tilecount;
          this.tileWidth = tiledTileset.tilewidth;
          this.tileHeight = tiledTileset.tileheight;
@@ -133,7 +132,6 @@ export class Tileset implements Properties {
             }
          }
       }
-
       if (isTiledTilesetCollectionOfImages(tiledTileset) && tiledTileset.firstgid !== undefined && tileToImage) {
          this.horizontalFlipTransform = AffineMatrix.identity().translate(tiledTileset.tilewidth, 0).scale(-1, 1);
          this.verticalFlipTransform = AffineMatrix.identity().translate(0, tiledTileset.tileheight).scale(1, -1);
@@ -256,7 +254,7 @@ export class Tileset implements Properties {
       const tileWidth = this.tileWidth;
       // This is slightly different in tilesets because the grid aligns with actual image rectangles
       // Tiled Resource DOES not, and aligns with the "logical" height
-      const halftileHeight = this.tileHeight / 2; 
+      const halftileHeight = this.tileHeight / 2;
       const tileY = isoCoord.y / halftileHeight;
       const tileX = isoCoord.x / halftileHeight;
       return vec(
@@ -266,7 +264,7 @@ export class Tileset implements Properties {
 
    /**
     * Returns any excalibur colliders setup for a Tile by gid
-    * 
+    *
     * By default it returns the collider in local coordinates, but sometimes you might need the collider in world coordinates
     *
     * Currently only supports Polygons, Boxes, and Ellipses*
@@ -371,3 +369,4 @@ export class Tileset implements Properties {
       return null;
    }
 }
+

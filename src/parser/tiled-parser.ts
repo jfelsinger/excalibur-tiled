@@ -1,26 +1,6 @@
 import { z } from 'zod';
 import * as jsdom from 'jsdom';
 
-function parseToElement(xml: string): Document {
-  if (typeof DOMParser !== 'undefined') {
-    const domParser = new DOMParser();
-    return domParser.parseFromString(xml, 'application/xml');
-  }
-
-  try {
-    const { JSDOM } = require('jsdom');
-        const dom = new JSDOM(xml, {
-            contentType: 'application/xml',
-            encoding: 'utf-8',
-        });
-    return dom.window.document as Document;
-    } catch (e) { /* ignored */ }
-
-    const error = new Error('Could not find DOM parser');
-    console.error(error.message, error);
-    throw error;
-}
-
 const TiledIntProperty = z.object({
    name: z.string(),
    type: z.literal('int'),
@@ -519,6 +499,26 @@ export class TiledParser {
       }
    }
 
+   _parseToElement(xml: string): Document {
+      if (typeof DOMParser !== 'undefined') {
+         const domParser = new DOMParser();
+         return domParser.parseFromString(xml, 'application/xml');
+      }
+
+      try {
+         const { JSDOM } = require('jsdom');
+         const dom = new JSDOM(xml, {
+            contentType: 'application/xml',
+            encoding: 'utf-8',
+         });
+         return dom.window.document as Document;
+      } catch (e) { /* ignored */ }
+
+      const error = new Error('Could not find DOM parser');
+      console.error(error.message, error);
+      throw error;
+   }
+
    parseObject(objectNode: Element, strict = true): TiledObject {
       const object: any = {};
       object.type = '';
@@ -896,7 +896,7 @@ export class TiledParser {
    }
 
    parseExternalTemplate(txXml: string, strict = true): TiledTemplate {
-      const doc = parseToElement(txXml);
+      const doc = this._parseToElement(txXml);
       const templateElement = doc.querySelector('template') as Element;
       const template: any = {};
       template.type = 'template';
@@ -926,7 +926,7 @@ export class TiledParser {
     * @param tsxXml
     */
    parseExternalTileset(tsxXml: string, strict = true): TiledTilesetFile {
-      const doc = parseToElement(tsxXml);
+      const doc = this._parseToElement(tsxXml);
       const tilesetElement = doc.querySelector('tileset') as Element;
 
       const tileset = this.parseTileset(tilesetElement, strict);
@@ -953,7 +953,7 @@ export class TiledParser {
     * @returns
     */
    parse(tmxXml: string, strict = true): TiledMap {
-      const doc = parseToElement(tmxXml);
+      const doc = this._parseToElement(tmxXml);
       const mapElement = doc.querySelector('map') as Element;
 
       const tiledMap: any = {};

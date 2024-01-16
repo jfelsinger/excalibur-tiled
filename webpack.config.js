@@ -48,7 +48,7 @@ module.exports = {
        commonjs2: "excalibur",
        amd: "excalibur",
        root: "ex"
-    },
+   },
    "jsdom": {
        commonjs: "JSDOM",
        commonjs2: "JSDOM",
@@ -60,3 +60,4 @@ module.exports = {
    //  new BundleAnalyzerPlugin()
  ]
 };
+

@@ -60,22 +60,22 @@ export class TilesetResource implements Loadable<Tileset> {
          if (isTiledTilesetSingleImage(tileset)) {
             const imagePath = pathRelativeToBase(this.path, tileset.image, this.pathMap);
             if (!this.headless) {
-            const image = this.imageLoader.getOrAdd(imagePath);
-            if (image) {
+               const image = this.imageLoader.getOrAdd(imagePath);
+               if (image) {
+                  this.data = new Tileset({
+                     name: tileset.name,
+                     tiledTileset: tileset,
+                     firstGid: this.firstGid,
+                     image
+                  });
+               }
+            }
+            else {
                this.data = new Tileset({
                   name: tileset.name,
                   tiledTileset: tileset,
                   firstGid: this.firstGid,
-                  image
                });
-            }
-         }
-            else {
-              this.data = new Tileset({
-                 name: tileset.name,
-                 tiledTileset: tileset,
-                 firstGid: this.firstGid,
-              });
             }
          }
 
@@ -121,3 +121,4 @@ export class TilesetResource implements Loadable<Tileset> {
       return !!this.data;
    }
 }
+
