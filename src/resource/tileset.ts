@@ -369,4 +369,3 @@ export class Tileset implements Properties {
       return null;
    }
 }
-

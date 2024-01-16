@@ -121,4 +121,3 @@ export class TilesetResource implements Loadable<Tileset> {
       return !!this.data;
    }
 }
-
