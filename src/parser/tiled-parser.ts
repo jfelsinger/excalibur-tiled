@@ -499,6 +499,12 @@ export class TiledParser {
       }
    }
 
+   /**
+    * Takes an xml string and uses an available parser (DOMParser in browser or JSDOM in Node.js)
+    * to produce a DOM object compatible with at least DOM Level 3.
+    * @param xml
+    * @returns
+    */
    _parseToElement(xml: string): Document {
       if (typeof DOMParser !== 'undefined') {
          const domParser = new DOMParser();
