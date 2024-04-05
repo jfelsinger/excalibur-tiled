@@ -6,7 +6,7 @@ import { TiledResource } from "./tiled-resource";
 import { getCanonicalGid } from "./gid-util";
 import { ExcaliburTiledProperties } from "./excalibur-properties";
 import { TiledLayerDataComponent } from "./tiled-layer-component";
-import { Layer } from "./layer";
+import type { Layer } from "./layer";
 import { Tile } from "./tileset";
 import { byClassCaseInsensitive, byPropertyCaseInsensitive } from "./filter-util";
 

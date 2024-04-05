@@ -1,12 +1,12 @@
-import { TiledProperty } from "../parser/tiled-parser";
+import type { TiledProperty } from "../parser/tiled-parser";
 
 export interface Properties {
-   /**
-    * Tiled properties are all lowercased when imported.
-    *
-    * These are all converted to lowercase keys, and lowercase if the value is a string
-    */
-   properties: Map<string, string | number | boolean>;
+    /**
+     * Tiled properties are all lowercased when imported.
+     *
+     * These are all converted to lowercase keys, and lowercase if the value is a string
+     */
+    properties: Map<string, string | number | boolean>;
 }
 
 /**
@@ -15,17 +15,17 @@ export interface Properties {
  * @param sourceProps 
  */
 export function mapProps<T extends Properties>(target: T, sourceProps?: TiledProperty[]) {
-   try {
-      if (sourceProps) {
-         for (const prop of sourceProps) {
-            let value = prop.value;
-            if (typeof prop.value === 'string') {
-               value = prop.value.toLocaleLowerCase();
+    try {
+        if (sourceProps) {
+            for (const prop of sourceProps) {
+                let value = prop.value;
+                if (typeof prop.value === 'string') {
+                    value = prop.value.toLocaleLowerCase();
+                }
+                target.properties.set(prop.name.toLocaleLowerCase(), value);
             }
-            target.properties.set(prop.name.toLocaleLowerCase(), value);
-         }
-      }
-   } catch (e) {
-      console.error(`Unable to map properties onto ${target}`, e);
-   }
+        }
+    } catch (e) {
+        console.error(`Unable to map properties onto ${target}`, e);
+    }
 }

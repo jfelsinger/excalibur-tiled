@@ -1,5 +1,5 @@
 // tmx xml parsing
-import { Matrix, vec, Animation, Sprite, Frame, AnimationStrategy } from 'excalibur';
+import { Matrix, vec, Animation, Sprite, type Frame, AnimationStrategy } from 'excalibur';
 import * as parser from 'fast-xml-parser'
 import { TiledObjectGroup } from './tiled-object';
 

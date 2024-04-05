@@ -12,7 +12,7 @@ import {
     FontUnit,
     Label,
     Sprite,
-    Loadable,
+    type Loadable,
     TextAlign,
     BaseAlign,
     Flags,
