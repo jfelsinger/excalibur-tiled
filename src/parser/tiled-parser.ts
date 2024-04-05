@@ -1,5 +1,4 @@
 import { z } from 'zod';
-// import * as jsdom from 'jsdom';
 
 const TiledIntProperty = z.object({
     name: z.string(),
@@ -513,12 +512,17 @@ export class TiledParser {
 
         try {
             const { JSDOM } = require('jsdom');
+            console.log('JSDOM: ', JSDOM);
             const dom = new JSDOM(xml, {
                 contentType: 'application/xml',
                 encoding: 'utf-8',
-            });
+            } as any);
             return dom.window.document as Document;
-        } catch (e) { /* ignored */ }
+        } catch (e) {
+            console.log('JSDOM PARSER FAILED!!!');
+            console.log('JSDOM PARSER FAILED!!!', e);
+            /* ignored */
+        }
 
         const error = new Error('Could not find DOM parser');
         console.error(error.message, error);
