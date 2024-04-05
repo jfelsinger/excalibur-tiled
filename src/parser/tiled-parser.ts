@@ -512,15 +512,12 @@ export class TiledParser {
 
         try {
             const { JSDOM } = require('jsdom');
-            console.log('JSDOM: ', JSDOM);
             const dom = new JSDOM(xml, {
                 contentType: 'application/xml',
                 encoding: 'utf-8',
             } as any);
             return dom.window.document as Document;
         } catch (e) {
-            console.log('JSDOM PARSER FAILED!!!');
-            console.log('JSDOM PARSER FAILED!!!', e);
             /* ignored */
         }
 
